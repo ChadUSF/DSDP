@@ -4,6 +4,12 @@ FROM jupyter/base-notebook:latest
 # Copy the notebook files into the container
 COPY . /home/jovyan/work
 
+RUN pip install numpy
+RUN pip install pandas
+RUN pip install scikit-learn
+RUN pip install matplotlib
+RUN pip install tensorflow
+
 # Expose port 8888 for Jupyter Notebook
 EXPOSE 8888
 
