@@ -1,97 +1,115 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-#import pickle  # to load a saved model
-#import base64  # to encode .gif files for HTML embedding
+import pickle
+import base64
 
-# Define helper functions
-def get_fvalue(val, feature_dict={"No": 0, "Yes": 1}):
-    return feature_dict.get(val, None)
+def get_fvalue(val):
+    feature_dict = {"No":1,"Yes":2}
+    for key,value in feature_dict.items():
+        if val == key:
+            return value
 
-def get_dependents_value(Dependents):
-    dependents_dict = {'0': 0, '1': 1, '2': 2, '3+': 3}
-    return dependents_dict.get(Dependents, 0)
-
-#def load_model(model_path='Random_Forest.sav'):
-    #with open(model_path, 'rb') as file:
-        #loaded_model = pickle.load(file)
-    #return loaded_model
-
-#def encode_gif(gif_path):
-    #with open(gif_path, "rb") as file:
-        #contents = file.read()
-        #data_url = base64.b64encode(contents).decode("utf-8")
-    #return data_url
-
-# App starts here
-app_mode = st.sidebar.selectbox('Select Page', ['Home', 'Prediction'])  # two pages
-
-if app_mode == 'Home':
-    st.title('LOAN PREDICTION APP')      
-    st.image('loan_image.jpg')    
+def get_value(val,my_dict):
+    for key,value in my_dict.items():
+        if val == key:
+            return value
+       
+app_mode = st.sidebar.selectbox('Select Page',['Home','Prediction'])
+if app_mode=='Home':
+    st.title('LOAN PREDICTION :')
+    st.image('loan_image.jpg') 
     st.markdown('## Dataset Overview')    
     data = pd.read_csv('loan_dataset.csv')    
     st.dataframe(data.head())    
     st.markdown('## Applicant Income VS Loan Amount')    
     st.bar_chart(data[['ApplicantIncome', 'LoanAmount']].head(20))
+   
+   
+elif app_mode =='Prediction':
+    st.image('slider.jpg')
+    st.subheader('Please complete all neccesary information in order to get a reply to your loan request.')
+    st.sidebar.header("Information about the client:")
+    gender_dict = {"Male":1,"Female":2}
+    feature_dict = {"No":1,"Yes":2}
+    credit_dict = {'No':0, 'Yes':1}
+    edu={'Graduate':1,'Not Graduate':2}
+    prop={'Rural':1,'Urban':2,'Semiurban':3}
+    Gender=st.sidebar.radio('Gender',tuple(gender_dict.keys()))
+    Married=st.sidebar.radio('Married',tuple(feature_dict.keys()))
+    Self_Employed=st.sidebar.radio('Self Employed',tuple(feature_dict.keys()))
+    Dependents=st.sidebar.radio('Dependents',options=['0','1' , '2' , '3+'])
+    Education=st.sidebar.radio('Education',tuple(edu.keys()))
+    ApplicantIncome=st.sidebar.slider('ApplicantIncome',0,10000,5000,)
+    CoapplicantIncome=st.sidebar.slider('CoapplicantIncome',0,10000,5000,)
+    LoanAmount=st.sidebar.slider('LoanAmount in K$',9.0,700.0,200.0)
+    Loan_Amount_Term=st.sidebar.selectbox('Loan_Amount_Term',(12.0,36.0,60.0,84.0,120.0,180.0,240.0,300.0,360.0))
+    Credit_History=st.sidebar.radio('Credit_History',tuple(credit_dict.keys()))
+    Property_Area=st.sidebar.radio('Property_Area',tuple(prop.keys()))
 
-elif app_mode == 'Prediction':
-    st.image('slider-short-3.jpg')    
-    st.subheader('Please fill all necessary information to get a reply to your loan request!')    
-    
-    # Sidebar form for input features
-    with st.sidebar.form(key='loan_form'):
-        st.header("Client Information:")    
-        gender_dict = {"Male": 1, "Female": 2}    
-        edu = {'Graduate': 1, 'Not Graduate': 2}    
-        prop = {'Rural': 1, 'Urban': 2, 'Semiurban': 3}
-        feature_dict = {"No": 0, "Yes": 1}  # Adjusted the mapping to be consistent
 
-        # Form fields
-        ApplicantIncome = st.slider('ApplicantIncome', 0, 10000, 5000)    
-        CoapplicantIncome = st.slider('CoapplicantIncome', 0, 10000, 2500)    
-        LoanAmount = st.slider('LoanAmount (in $K)', 9.0, 700.0, 200.0)    
-        Loan_Amount_Term = st.selectbox('Loan_Amount_Term (in months)', (12, 36, 60, 84, 120, 180, 240, 300, 360))    
-        Credit_History = st.radio('Credit_History', (0.0, 1.0))    
-        Gender = st.radio('Gender', tuple(gender_dict.keys()))    
-        Married = st.radio('Married', tuple(feature_dict.keys()))    
-        Self_Employed = st.radio('Self Employed', tuple(feature_dict.keys()))    
-        Dependents = st.radio('Dependents', ('0', '1', '2', '3+'))    
-        Education = st.radio('Education', tuple(edu.keys()))    
-        Property_Area = st.radio('Property_Area', tuple(prop.keys()))    
-        submit_button = st.form_submit_button(label='Predict')
+    class_0 , class_3 , class_1,class_2 = 0,0,0,0
+    if Dependents == '0':
+        class_0 = 1
+    elif Dependents == '1':
+        class_1 = 1
+    elif Dependents == '2' :
+        class_2 = 1
+    else:
+        class_3= 1
 
-    # Prediction logic
-    if submit_button:
-        # Encode input features
-        feature_vector = np.array([
-            ApplicantIncome, CoapplicantIncome, LoanAmount, Loan_Amount_Term, Credit_History,
-            get_fvalue(Gender, gender_dict), get_fvalue(Married), get_fvalue(Self_Employed),
-            edu[Education], prop[Property_Area],  # Using direct mapping for simplicity
-            get_dependents_value(Dependents)
-        ]).reshape(1, -1)
-        
-    # Build model and make prediction
-        data = pd.read_csv('loan_dataset.csv')
-        label_encoder = LabelEncoder()
-        categorical_columns = ['Gender', 'Married', 'Education', 'Self_Employed', 'Property_Area', 'Dependents']
-        for col in categorical_columns:
-            data[col] = label_encoder.fit_transform(data[col].astype(str))
+    Rural,Urban,Semiurban=0,0,0
+    if Property_Area == 'Urban' :
+        Urban = 1
+    elif Property_Area == 'Semiurban' :
+        Semiurban = 1
+    else :
+        Rural=1
+   
+    data1={
+    'Gender':Gender,
+    'Married':Married,
+    'Dependents':[class_0,class_1,class_2,class_3],
+    'Education':Education,
+    'ApplicantIncome':ApplicantIncome,
+    'CoapplicantIncome':CoapplicantIncome,
+    'Self Employed':Self_Employed,
+    'LoanAmount':LoanAmount,
+    'Loan_Amount_Term':Loan_Amount_Term,
+    'Credit_History':Credit_History,
+    'Property_Area':[Rural,Urban,Semiurban],
+    }
 
-        X = data.drop(['Loan_Status','Loan_ID'], axis=1)
-        y = data['Loan_Status']
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=13)
-        model = RandomForestClassifier(n_estimators=10, max_depth=4)
-        model.fit(X_train, y_train)
-        prediction = model.predict(feature_vector)
-        
-        # Display results
-        if prediction[0] == 0:
-            st.error('According to our Calculations, you will not get the loan from Bank')            
-            st.image('slider-short-3.jpg')    
-        elif prediction[0] == 1:            
-            st.success('Congratulations!! you will get the loan from Bank')            
-            st.image('rain.jpg')
+    feature_list=[ApplicantIncome,CoapplicantIncome,LoanAmount,Loan_Amount_Term,get_value(Credit_History,credit_dict),get_value(Gender,gender_dict),get_fvalue(Married),data1['Dependents'][0],data1['Dependents'][1],data1['Dependents'][2],data1['Dependents'][3],get_value(Education,edu),get_fvalue(Self_Employed),data1['Property_Area'][0],data1['Property_Area'][1],data1['Property_Area'][2]]
+
+    single_sample = np.array(feature_list).reshape(1,-1)
+
+    if st.sidebar.button("Predict"):
+        file_ = open("congrats.gif", "rb")
+        contents = file_.read()
+        data_url = base64.b64encode(contents).decode("utf-8")
+        file_.close()
+   
+        file = open("green-no.gif", "rb")
+        contents = file.read()
+        data_url_no = base64.b64encode(contents).decode("utf-8")
+        file.close()
+   
+   
+        loaded_model = pickle.load(open('Extra_Trees.sav', 'rb'))
+        prediction = loaded_model.predict(single_sample)
+        if prediction[0] == 0 :
+            st.error(
+    'According to our calculations, you will not get the loan from bank.'
+    )
+            st.markdown(
+    f'<img src="data:image/gif;base64,{data_url_no}" alt="cat gif">',
+    unsafe_allow_html=True,)
+        elif prediction[0] == 1 :
+            st.success(
+    'Congratulations!! You will get the loan from Bank!'
+    )
+            st.markdown(
+    f'<img src="data:image/gif;base64,{data_url}" alt="cat gif">',
+    unsafe_allow_html=True,
+    )
