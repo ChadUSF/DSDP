@@ -68,13 +68,13 @@ elif app_mode =='Visuals':
     st.markdown('### Summary Statistics')
     st.write(sum_data)
 
-    st.markdown('## Correlation Heatmap')
+    st.markdown('### Correlation Heatmap')
     cm = np.corrcoef(df.values.T)
     plt.figure(figsize=(10, 8))
     hm = heatmap(cm, row_names=df.columns, column_names=df.columns, cmap='coolwarm')
     st.pyplot(plt.gcf())
 
-    st.markdown('## Sale Price Distribution')
+    st.markdown('### Sale Price Distribution')
     plt.figure(figsize=(8, 6))
     df['SalePrice'].plot.hist(bins=20, edgecolor="black")
     plt.xlabel("Sale Price in $")
@@ -113,5 +113,8 @@ elif app_mode =='Prediction':
         file.close()
 
         pred = forest.predict(input_data)
-
+        st.markdown(
+            f'<img src="data:image/gif;base64,{data_url}" alt="cat gif" style="{image_style}">',
+            unsafe_allow_html=True,)
+        
         st.subheader(f"Predicted Sale Price: ${pred[0]:,.2f}")
