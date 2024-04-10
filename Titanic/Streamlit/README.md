@@ -2,6 +2,12 @@
 
 ## This is a demonstration of use and implementation of streamlit, using the Titanic dataset, to create a survivor prediciton form.
 
+*Steps to run this program*
+```
+pip install -r requirements.txt 
+
+streamlit run titanicSL.py
+```
 
 The streamlit app opens to the home page. This page describes the kaggle titanic challenge which is the foundation of the activity.
 ![SL1](https://github.com/ChadUSF/DSDP/assets/98490531/968ca99d-924a-41d3-914e-0aecaea66a01)
