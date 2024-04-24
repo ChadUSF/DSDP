@@ -1,6 +1,10 @@
 # Titanic - Machine Learning from Disaster
 ## The Challenge (from https://www.kaggle.com/c/titanic)
 
+Since the original creation, I've added cross validation and a learning curve chart shown below.
+![image](https://github.com/ChadUSF/DSDP/assets/98490531/fca76f20-f036-4c2f-9b11-131f9c986f46)
+
+
 The sinking of the Titanic is one of the most infamous shipwrecks in history.
 
 On April 15, 1912, during her maiden voyage, the widely considered “unsinkable” RMS Titanic sank after colliding with an iceberg. Unfortunately, there weren’t enough lifeboats for everyone onboard, resulting in the death of 1502 out of 2224 passengers and crew.
