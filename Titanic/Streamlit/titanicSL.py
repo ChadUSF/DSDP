@@ -10,8 +10,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import base64
 import pickle
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import learning_curve
        
-app_mode = st.sidebar.selectbox('Select Page',['Home','Visuals','Prediction'])
+app_mode = st.sidebar.selectbox('Select Page',['Home','Visuals','Prediction','Discussion'])
 if app_mode=='Home':
     file_ = open("titanic.gif", "rb")
     contents = file_.read()
@@ -46,7 +48,6 @@ if app_mode=='Home':
     The test.csv dataset contains similar information but does not disclose the “ground truth” for each passenger. It’s your job to predict these outcomes.
 
     Using the patterns you find in the train.csv data, predict whether the other 418 passengers on board (found in test.csv) survived.
-
     """)
     
    
@@ -106,8 +107,11 @@ elif app_mode =='Visuals':
     st.markdown('## Count of Passenger Class')
     st.bar_chart(data['Pclass'].value_counts())
 
+    st.markdown('## Feature importance of Random Forest Model')
+    st.image('SL9.png')
+
 elif app_mode =='Prediction':
-    st.image('survive.jpg',width=500)
+    st.image('Ssurvive.jpg',width=500)
     st.subheader('Complete criteria to determine if you would perish like Jack or survive like Rose!')
     st.sidebar.header("Passengar Information:")
     gender_dict = {"Male":'male',"Female":'female'}
@@ -120,7 +124,7 @@ elif app_mode =='Prediction':
     Parch = st.sidebar.slider('\# of parents / children aboard the Titanic', 0, 10, 1)
     Embarked = st.sidebar.radio('Embarked From:', tuple(embarked_dict.keys()))
 
-    model = 'SVC.sav'
+    model = 'bestRF.sav'
     loaded_model = pickle.load(open(model, 'rb'))
 
     train=pd.read_csv('titanic.csv')
@@ -202,3 +206,71 @@ elif app_mode =='Prediction':
             st.markdown(
     f'<img src="data:image/gif;base64,{data_url}" alt="cat gif" style="{image_style}">',
     unsafe_allow_html=True,)
+            
+elif app_mode =='Discussion':
+    st.title('Titanic - Machine Learning from Disaster Discussion')
+    st.write("""
+    A dummy baseline was determined by assuming the most frequent dependent variable classification 
+             (NOT survived) with a train accuracy 62.9% and test accuracy 60.8%. 
+
+    An intial attempt with a basic Neural Network using a single layer of 16 neurons resulted in an improved train 
+             accuracy of 87.6% and test accuracy of 84.7%.
+
+    An attempt with a Deep Neural Network using three hidden layers of 16 - 12 - 8 neurons resulted in a similar train 
+             accuracy of 88.5% and test accuracy of 84.0%.
+    
+    An attempt with Random Forest Classifier using default hyperparameters except Max_depth=10 to limit severe overfitting resulted 
+             in train accuracy of 94.3% and test accuracy of 84.2%
+             A feature importance chart shows gender as most important, followed by Fare, then Age.
+    
+    An attempt with Extra Trees classifier using default hyperparameters except Max_depth=10 resulted 
+             in train accuracy of 92.2% and test accuracy of 83.5%
+             Another feature importance chart shows similar results as Random Forest. 
+
+    Modifying the scalers showed no impact on resulting accuracy scores on an SVC Linear model.
+           
+        Train acc Std Scaler: 86.0%
+        Train acc MaxAbsScaler: 86.0%
+        Train acc RobustScaler: 86.0%
+                    
+        Test acc Std Scaler: 84.2%
+        Test acc MaxAbsScaler: 84.2%
+        Test acc RobustScaler: 84.2%              
+
+    An attempt with SVC Poly model (degree=3) resulted in a similar train accuracy of 87.4% and test accuracy of 84.5%.
+
+    An attempt with SVC RBF model resulted in a similar train accuracy of 88.5% and test accuracy of 85.2%.
+             
+    How accurate are the accuracy results? Cross validation helps identify this. On the SVC RBF model, the accuracy shows 
+             CV Train Accuracy: 87.3% +/- 4.1%, in other words anywhere from 83.2% to 91.4%.
+             This is to say, all the models are better than the baseline, therefore effective, and thus far nearly identical 
+             when considering the margin of error. 
+
+    Can we do better with hyperparameter tuning? Using BayesSearch on Random Forest with estimators between 50-150, max depth from 3-10,
+             and min samples split from 2-4, the best setting returns as 50 estimators, depth of 7 and min split of 3. 
+             The resulting train accuracy of 87.1% and test accuracy of 84.7% (previously 94.3% and 84.2%).
+             No significant improvement but did reduce overfitting.
+
+
+    """)
+    st.markdown('## Learning Curve using default hyperparameters')
+    st.image('SL10.png')
+
+    st.markdown('## Learning Curve using BayesSearch defined hyperparameters')
+    st.image('SL10b.png')
+    st.write("""
+    We can see less overfitting as a result of the refined hyperparameters.
+    """)   
+
+    st.write("""
+    Can unsupervised learning help? Creating a Kmeans clustering elbow chart has no clear elbow, so no clear number of 
+             clusters to use.
+    """)
+    st.image('SL13.png')
+
+    st.write("""
+    I picked two clusters to see if anything would result simulating the survived/ NOT survived dynamic.
+             No clear results with a PCA cluster chart, nor comparing K-means and agglomerative clustering.
+    """)  
+    st.image('SL12.png')
+    st.image('SL11.png')
