@@ -111,7 +111,7 @@ elif app_mode =='Visuals':
     st.image('SL9.png')
 
 elif app_mode =='Prediction':
-    st.image('Ssurvive.jpg',width=500)
+    st.image('survive.jpg',width=500)
     st.subheader('Complete criteria to determine if you would perish like Jack or survive like Rose!')
     st.sidebar.header("Passengar Information:")
     gender_dict = {"Male":'male',"Female":'female'}
